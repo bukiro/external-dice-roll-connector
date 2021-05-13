@@ -20,16 +20,16 @@ class APIModule {
     error(message) {
         this.reply({success: false, error: message});
     }
+
     reply(result) {
         const body = document.getElementsByTagName("body")[0];
         body.textContent = JSON.stringify(result);
-        this.socket.close();
     }
-
+    
     processRequest() {
         if (!this.sessionId)
             return this.error("User not logged in")
-        let params = {}
+        let params = {};
         try {
             let search = window.location.search;
             if (search[0] === '?')
@@ -47,19 +47,14 @@ class APIModule {
             return this.error("Error parsing query string")
         }
 
-        if (params.name === undefined)
-            return this.error("API use requires query string 'name'")
-        let args = [];
-        for (let i = 0; i < 10; i++ ) {
-            if (params[`arg${i}`] !== undefined)
-                args.push(params[`arg${i}`]);
-            else
-                break;
+        if (!params.roll) {
+            return this.error("Parameter roll was not given")
         }
-        console.log("Got request with params : ", params, args)
-        this.socket.emit(params.name, ...args, (...args) => {
-            return this.reply({query: params, result: args, success: true})
-        });
+
+        console.log(params.roll)
+        this.socket.emit("module.external-dice-roll-connector", { type: "roll", sessionId: this.sessionId, roll: params.roll })
+            
+        this.reply({message: "Roll sent: " + params.roll})
     }
 }
 

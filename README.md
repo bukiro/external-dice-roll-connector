@@ -1,33 +1,75 @@
-# API
+# External Dice Roll Connector
 
-This modules makes the Foudry VTT API accessible via HTTP.
+This module allows you to roll dice in your open Foundry VTT session from your web browser.
 
-This is still a proof of concept
+# Usage
 
-# Format
+After the module is installed on the Foundry VTT server and enabled for the current world, you can send a dice roll to the server. You need to already be logged in to a FVTT session.
 
-You can access the API page through your game URL with the path `/modules/api/api.html` and you can specify what API to emit with the query string `name` and you can pass optional arguments to it through the parameters `arg0`, `arg1`, `arg2`, etc.. up to `arg9`.
+Access the connector via your FVTT URL under the path `/modules/external-dice-roll-connector/roll.html` and add the query `roll` with your desired roll.
 
-Arguments can be in a url encoded JSON string, or a literal string.
+The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or you can calculate the results in your own app and send a finished Roll object.
 
-The response you receive will be a json object with a boolean `success` field to indicate if the call was successful or not. If an error occured, a `error` field will contain the error message. Otherwise, a `result` field will contain the response from the server.
+- Formula: Simply add your formula after `roll.html?roll=`.
 
-For the API to work, you must be already logged in with the same browser, and all API calls will be sent as that user.
+- Roll: You should only send a completed Roll if you have calculated the result in your own app and don't want it calculated again in the session. See the [Foundry VTT API documentation](https://foundryvtt.com/api/) on how to structure a Roll object. Your Roll object should have at least the following attributes:
+
+    - `class: "Roll"`
+    - `formula`
+    - `terms`
+    - `results`
+    - `_total` (with the underscore - not `total`)
 
 # Examples
 
-Get the entire world data : 
-`https://example.com/modules/api/api.html?name=world`
+- Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=2d6+2`
 
-Set a playlist sound to playing (it's up to you to find the playlist and sound ids) :
-`https://example.com/modules/api/api.html?name=updatePlaylistSound&arg0={"parentId":"playlist_id", "data":{"_id":"sound_id", "playing": true}}&arg1={"embeddedName":"PlaylistSound"}`
+- Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=15`
+
+- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll={"class":"Roll","formula":"2d6 + 2","terms":[{"class":"Die","number":2,"faces":6,"results":[{"result":5,"active":true},{"result":4,"active":true}]},"+",2],"results":[9,"+",2],"_total":11}`
+    - This represents a roll of `2d6 + 2`, calculated to `5 + 4 + 2 = 11`.
+    - The corresponding in-app JSON would look like this:
+
+```
+{
+    class: "Roll",
+    formula: "2d6 + 2",
+    terms: [
+        {
+            class: "Die",
+            number: 2,
+            faces: 6,
+            results: [
+                {
+                    result: 5,
+                    active: true
+                },
+                {
+                    result: 4,
+                    active: true
+                }
+            ]
+        },
+        "+",
+        2
+    ],
+    results: [
+        9,
+        "+",
+        2
+    ],
+    _total: 11
+}
+```
 
 # Installation
-In the setup page of FVTT, Install the module by entering the following URL : `https://raw.githubusercontent.com/kakaroto/fvtt-module-api/master/module.json`
 
-Once installed, the API will be available, regardless on whether or not the module is enabled for the world.
+Install the module from the library or by the manifest URL: `https://raw.githubusercontent.com/bukiro/external-dice-roll-connector/master/module.json`
+
+Enable the module for any world in which you want to use it.
 
 # License
-This Foundry VTT module, writen by KaKaRoTo, is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 
-This work is licensed under Foundry Virtual Tabletop [EULA - Limited License Agreement for module development v 0.1.6](http://foundryvtt.com/pages/license.html).
+This Foundry VTT module is based on the [HTTP API module by KaKaRoTo](https://foundryvtt.com/packages/api/).
+
+This Foundry VTT module is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
