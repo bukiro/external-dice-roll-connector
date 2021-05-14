@@ -42,9 +42,33 @@ Hooks.on("init", function () {
                         r = new Roll(event.roll.toString());
                         r.evaluate();
                     }
+                    //If a character name was given, try to find a speaker with that name in this scene.
+                    //Try to find one among the owned tokens first, then all actors.
+                    //If neither are found, get the user's default speaker and change its alias to the name.
+                    var mySpeaker;
+                    if (event.name) {
+                        console.log(event.name)
+                        var myToken = canvas.tokens.ownedTokens.find(t => t.name == event.name);
+                        var myScene = game.scenes.get(game.user.viewedScene);
+                        var myActor = game.actors.getName(event.name);
+                        if (myToken) {
+                            mySpeaker = ChatMessage.getSpeaker({ token: myToken });
+                        } else if (myScene && myActor) {
+                            mySpeaker = ChatMessage.getSpeaker({ scene: myScene, actor: myActor });
+                        } else {
+                            mySpeaker = ChatMessage.getSpeaker({ user: game.user });
+                            mySpeaker.alias = event.name;
+                        }
+                    }
+                    //If no name is given, get the user's default speaker.
+                    if (!mySpeaker) {
+                        console.log("buh")
+                        mySpeaker = ChatMessage.getSpeaker({ user: game.user })
+                    }
                     //Finally, post the finished Roll into the chat.
+                    console.log(mySpeaker)
                     r.toMessage({
-                        user: game.user._id,
+                        speaker: mySpeaker
                     })
                 } catch (error) {
                     ui.notifications.error("[External Dice Roll Connector] Error: " + error.toString());

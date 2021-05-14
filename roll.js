@@ -52,7 +52,7 @@ class APIModule {
         }
 
         console.log(params.roll)
-        this.socket.emit("module.external-dice-roll-connector", { type: "roll", sessionId: this.sessionId, roll: params.roll })
+        this.socket.emit("module.external-dice-roll-connector", { type: "roll", sessionId: this.sessionId, roll: params.roll, name: params.name })
             
         this.reply({message: "Roll sent: " + params.roll})
     }

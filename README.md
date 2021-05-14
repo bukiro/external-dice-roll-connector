@@ -6,7 +6,7 @@ This module allows you to roll dice in your open Foundry VTT session from your w
 
 After the module is installed on the Foundry VTT server and enabled for the current world, you can send a dice roll to the server. You need to already be logged in to a FVTT session.
 
-Access the connector via your FVTT URL under the path `/modules/external-dice-roll-connector/roll.html` and add the query `roll` with your desired roll.
+Access the connector via your FVTT URL under the path `/modules/external-dice-roll-connector/roll.html` and add the query `roll` with your desired roll. Optionally, add the query `name` to provide the character name that should be appended to the roll message.
 
 The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or you can calculate the results in your own app and send a finished Roll object.
 
@@ -24,11 +24,11 @@ The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or yo
 
 - Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=2d6+2`
 
-- Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=15`
+- Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=15&name=Heroguy`
 
-- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll={"class":"Roll","formula":"2d6 + 2","terms":[{"class":"Die","number":2,"faces":6,"results":[{"result":5,"active":true},{"result":4,"active":true}]},"+",2],"results":[9,"+",2],"_total":11}`
-    - This represents a roll of `2d6 + 2`, calculated to `5 + 4 + 2 = 11`.
-    - The corresponding in-app JSON would look like this:
+- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?name=Heroguy&roll={"class":"Roll","formula":"2d6 + 2","terms":[{"class":"Die","number":2,"faces":6,"results":[{"result":5,"active":true},{"result":4,"active":true}]},"+",2],"results":[9,"+",2],"_total":11}`
+    - This represents a roll of `2d6 + 2`, calculated to `5 + 4 + 2 = 11` - rolled by our hero, Heroguy.
+    - The corresponding in-app JSON of the roll would look like this:
 
 ```
 {
