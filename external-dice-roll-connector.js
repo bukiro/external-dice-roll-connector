@@ -68,6 +68,7 @@ Hooks.on("init", function () {
                     r.toMessage({
                         speaker: mySpeaker
                     })
+                    console.log("[External Dice Roll Connector] Received external dice roll with alias " + event.name);
                 } catch (error) {
                     ui.notifications.error("[External Dice Roll Connector] Error: " + error.toString());
                 }
