@@ -62,11 +62,9 @@ Hooks.on("init", function () {
                     }
                     //If no name is given, get the user's default speaker.
                     if (!mySpeaker) {
-                        console.log("buh")
                         mySpeaker = ChatMessage.getSpeaker({ user: game.user })
                     }
                     //Finally, post the finished Roll into the chat.
-                    console.log(mySpeaker)
                     r.toMessage({
                         speaker: mySpeaker
                     })
