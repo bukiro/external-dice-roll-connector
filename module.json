@@ -5,10 +5,11 @@
     "description": "<p>This module is an HTTP connector that allows you to roll dice in your open Foundry VTT session by opening a URL in the same browser.</p><p>In the browser, navigate to http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=formula, where 'formula' is your dice roll formula to be evaluated.</p><p>Example: http://localhost:30000/modules/external-dice-roll-connector/roll.html?roll=2d6+2</p><p>Optionally, you can add a name ( &amp;name=... ), and the module will do its best to use the correct token or actor to post your roll.</p><p>See the README for details and sending a Roll object with included results.</p><p>This module is based on the <a href=\"https://foundryvtt.com/packages/api\">HTTP API module by KaKaRoTo</a></p>",
     "author": "bukiro",
     "license": "",
-    "minimumCoreVersion": "0.8.9",
+    "minimumCoreVersion": "0.8.0",
+    "compatibleCoreVersion": "0.8.9",
     "url": "https://github.com/bukiro/external-dice-roll-connector",
     "manifest": "https://raw.githubusercontent.com/bukiro/external-dice-roll-connector/master/module.json",
-    "download": "https://github.com/bukiro/external-dice-roll-connector/archive/refs/tags/v1.0.2.zip",
+    "download": "https://github.com/bukiro/external-dice-roll-connector/archive/v1.0.2.zip",
     "languages": [],
     "scripts": [
         "external-dice-roll-connector.js"
