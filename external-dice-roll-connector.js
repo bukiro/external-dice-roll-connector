@@ -18,57 +18,86 @@ Hooks.on("init", function () {
         switch (event.type) {
             case "roll": {
                 try {
-                    //Check if this is a formula or a Roll.
-                    //A Roll will be converted into a real Roll object based on its formula, and then overwritten with its attributes where possible.
-                    //A Roll Object has getter functions and can't be assigned in one go.
-                    if (event.roll.class === "Roll") {
-                        r = new Roll(event.roll.formula);
-                        r.evaluate();
-                        //Overwrite each attribute that isn't a getter.
-                        Object.keys(event.roll).forEach(key => {
-                            try {
-                                r[key] = event.roll[key];
-                            } catch { }
-                        })
-                        //Now turn every term with class === "Die" into a real Die object.
-                        if (event.roll.terms) {
-                            r.terms = event.roll.terms.map(term => term.class === "Die" ? Object.assign(new Die(), term) : term);
+                    function findSpeaker(event) {
+                        //If a character name was given, try to find a speaker with that name in this scene.
+                        //Try to find one among the owned tokens first, then all actors.
+                        //If neither are found, get the user's default speaker and change its alias to the name.
+                        var mySpeaker;
+                        var speakerTypeMessage;
+                        if (event.name) {
+                            var myToken = canvas.tokens.ownedTokens.find(t => t.name == event.name);
+                            var myScene = game.scenes.get(game.user.viewedScene);
+                            var myActor = game.actors.getName(event.name);
+                            if (myToken) {
+                                mySpeaker = ChatMessage.getSpeaker({ token: myToken });
+                                speakerTypeMessage = "[External Dice Roll Connector] Owned token with name " + event.name + " found, using for chat message."
+                            } else if (myScene && myActor) {
+                                mySpeaker = ChatMessage.getSpeaker({ scene: myScene, actor: myActor });
+                                speakerTypeMessage = "[External Dice Roll Connector] Actor with name " + event.name + " found, using for chat message."
+                            } else {
+                                mySpeaker = ChatMessage.getSpeaker({ user: game.user });
+                                mySpeaker.alias = event.name;
+                                speakerTypeMessage = "[External Dice Roll Connector] No token or actor with name " + event.name + " found, using player with alias for chat message."
+                            }
                         }
-                        //If the fake Roll has a total value, apply it to the real Roll's _total (as total is a getter function.)
+                        //If no name is given, get the user's default speaker.
+                        if (!mySpeaker) {
+                            mySpeaker = ChatMessage.getSpeaker({ user: game.user })
+                        }
+                        console.log("[External Dice Roll Connector] Received external dice roll with alias " + event.name + ".");
+                        console.log(speakerTypeMessage);
+                        return mySpeaker;
+                    }
+
+                    //Check if this is a formula (string) or a Roll (object).
+                    //A Roll will be converted into a real Roll object based on its formula, and then overwritten with the included data where possible.
+                    if (event.roll instanceof Object) {
+                        //Catch rolls that use "formula" or "total" as values instead of "_formula" and "_total".
+                        if (event.roll.formula) {
+                            event.roll._formula = event.roll.formula
+                        }
                         if (event.roll.total) {
-                            r._total = event.roll.total;
+                            event.roll._total = event.roll.total;
                         }
+                        var r = new Roll(event.roll._formula);
+                        (async () => {
+                            await r.evaluate({ async: true });
+                            //Try to overwrite each attribute, starting with the terms; getters will be caught and ignored.
+                            event.roll.terms?.forEach((term, index) => {
+                                try {
+                                    if (term instanceof Object && r.terms[index] instanceof Object) {
+                                        event.roll.terms[index] = Object.assign(r.terms[index], term);
+                                    } else {
+                                        r.terms[index] = term;
+                                    }
+                                } catch { }
+                            })
+                            Object.keys(event.roll).forEach(key => {
+                                try {
+                                    if (r[key] instanceof Object) {
+                                        r[key] = Object.assign(r[key], event.roll[key]);
+                                    } else {
+                                        r[key] = event.roll[key];
+                                    }
+                                } catch { }
+                            })
+                            const mySpeaker = findSpeaker(event);
+                            //Finally, post the finished Roll into the chat.
+                            r.toMessage({
+                                speaker: mySpeaker
+                            })
+                        })();
                     } else {
-                        r = new Roll(event.roll.toString());
-                        r.evaluate();
+                        var r = new Roll(event.roll.toString());
+                        (async () => {
+                            await r.evaluate({ async: true });
+                            const mySpeaker = findSpeaker(event);
+                            //Finally, post the finished Roll into the chat.
+                            r.toMessage({
+                                speaker: mySpeaker
+                            })
+                        })();
                     }
-                    //If a character name was given, try to find a speaker with that name in this scene.
-                    //Try to find one among the owned tokens first, then all actors.
-                    //If neither are found, get the user's default speaker and change its alias to the name.
-                    var mySpeaker;
-                    if (event.name) {
-                        console.log(event.name)
-                        var myToken = canvas.tokens.ownedTokens.find(t => t.name == event.name);
-                        var myScene = game.scenes.get(game.user.viewedScene);
-                        var myActor = game.actors.getName(event.name);
-                        if (myToken) {
-                            mySpeaker = ChatMessage.getSpeaker({ token: myToken });
-                        } else if (myScene && myActor) {
-                            mySpeaker = ChatMessage.getSpeaker({ scene: myScene, actor: myActor });
-                        } else {
-                            mySpeaker = ChatMessage.getSpeaker({ user: game.user });
-                            mySpeaker.alias = event.name;
-                        }
-                    }
-                    //If no name is given, get the user's default speaker.
-                    if (!mySpeaker) {
-                        mySpeaker = ChatMessage.getSpeaker({ user: game.user })
-                    }
-                    //Finally, post the finished Roll into the chat.
-                    r.toMessage({
-                        speaker: mySpeaker
-                    })
-                    console.log("[External Dice Roll Connector] Received external dice roll with alias " + event.name);
                 } catch (error) {
                     ui.notifications.error("[External Dice Roll Connector] Error: " + error.toString());
                 }

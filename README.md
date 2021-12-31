@@ -12,10 +12,9 @@ The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or yo
 
 - Formula: Simply add your formula after `roll.html?roll=`.
 
-- Roll: You should only send a completed Roll if you have calculated the result in your own app and don't want it calculated again in the session. See the [Foundry VTT API documentation](https://foundryvtt.com/api/) on how to structure a Roll object. Your Roll object should have at least the following attributes:
+- Roll: You should only send a completed roll if you have calculated the result in your own app and don't want it calculated again in the session. See the [Foundry VTT API documentation](https://foundryvtt.com/api/) on how to structure a Roll object. Foundry is not designed to accept completed rolls and will generate a new roll, which will be overwritten with your data. For best results in Foundry, your Roll object should have at least the following attributes:
 
-    - `class: "Roll"`
-    - `formula`
+    - `_formula`
     - `terms`
     - `results`
     - `_total` (with the underscore - not `total`)
@@ -26,17 +25,15 @@ The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or yo
 
 - Formula: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll=15&name=Heroguy`
 
-- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?name=Heroguy&roll={"class":"Roll","formula":"2d6 + 2","terms":[{"class":"Die","number":2,"faces":6,"results":[{"result":5,"active":true},{"result":4,"active":true}]},"+",2],"results":[9,"+",2],"_total":11}`
-    - This represents a roll of `2d6 + 2`, calculated to `5 + 4 + 2 = 11` - rolled by our hero, Heroguy.
+- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?name=Heroguy&roll={"formula":"2d6 + 2","terms":[{"number":2,"faces":6,"results":[{"result":5,"active":true},{"result":4,"active":true}]},{"operator":"+"},{"number":2}],"results":[9,"+",2],"_total":11}`
+    - This represents a pre-calculated roll of `2d6 + 2`, calculated to `5 + 4 + 2 = 11` - rolled by our hero, Heroguy.
     - The corresponding in-app JSON of the roll would look like this:
 
 ```
 {
-    class: "Roll",
     formula: "2d6 + 2",
     terms: [
         {
-            class: "Die",
             number: 2,
             faces: 6,
             results: [
@@ -50,14 +47,31 @@ The connector can parse Foundry dice rolling formulas (such as `2d6 + 2`), or yo
                 }
             ]
         },
-        "+",
-        2
+        {
+            operator: "+"
+        },
+        {
+            number: 2
+        }
+        
     ],
     results: [
         9,
         "+",
         2
     ],
+    _total: 11
+}
+```
+
+- Roll: `http://your.server:port/modules/external-dice-roll-connector/roll.html?roll={"formula":"2d6+2","_total":11}`
+    - This represents the most reduced pre-calculated dice roll that makes sense to send: a formula and its result.
+    - In this example, the dice will be re-calculated in Foundry VTT, but the displayed result will be the given total. The calculated rolls will probably not match this result. The speaker will be the selected token or the player name.
+    - The corresponding JSON of the roll would look like this:
+
+```
+{
+    formula: "2d6 + 2",
     _total: 11
 }
 ```
