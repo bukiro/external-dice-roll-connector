@@ -6,6 +6,7 @@
     "author": "bukiro",
     "license": "",
     "minimumCoreVersion": "0.9.0",
+    "compatibleCoreVersion": "9",
     "url": "https://github.com/bukiro/external-dice-roll-connector",
     "manifest": "https://raw.githubusercontent.com/bukiro/external-dice-roll-connector/master/module.json",
     "download": "https://github.com/bukiro/external-dice-roll-connector/releases/download/v1.0.3/v1.0.3.zip",
